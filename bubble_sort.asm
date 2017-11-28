@@ -1,5 +1,6 @@
 ;SORT THE NUMBERS IN FILE
 ;ZJR 11.24
+INCLUDE EMU8086.INC
 .MODEL SMALL
 .STACK 1024
 
@@ -75,42 +76,49 @@ CLOSEF:
 
 ;READ NUM FROM BUFFER TO ARRAY[]    
 READNUM:
-    MOV CX,0    ;COUNT BUFFER
+    XOR AX,AX
+    MOV CX,1    ;COUNT BUFFER
     MOV BX,0    ;COUNT ARRAY
     MOV SI,OFFSET BUFFER
     MOV DI,OFFSET ARRAY
-    MOV AX,[SI]
+    MOV AL,[SI]
     ADD SI,1
-    SUB AX,30H
+    SUB AL,30H
     PUSH AX
     
 RLOOP:
-    MOV AX,[SI]
-    CMP AX,32  ;BUFFER(CX)==' '?
+    MOV AL,[SI]
+    CMP AL,32  ;BUFFER(CX)==' '?
     JE RSPACE
     ;IS NUMBER
     POP AX         ;LAST PLACE *10
     MUL TEN
-    ADD AX,[SI]
-    SUB AX,30H      ;ASCII -> NUM
+    ADD AL,[SI]
+    SUB AL,30H      ;ASCII -> NUM
     PUSH AX
     ADD SI,1
     INC CX
     CMP CX,BUFFSIZE
-    JG BSORT        ;READ END
+    JZ BSORT        ;READ END
     JMP RLOOP  
 
 ;MEET A SPACE-> STORE A NUMBER TO ARRAY
 RSPACE:
     POP AX
-    MOV AX,[DI]     ;ARRAY[BX]
+    MOV [DI],AL     ;ARRAY[BX]
     INC BX
     ADD DI,1
     
-    INC SI
-    INC CX
+    XOR AX,AX       ;NEXT NUM
+    ADD SI,1
+    MOV AL,[SI]
+    SUB AL,30H
+    PUSH AX
+    ADD SI,1
+
+    ADD CX,2
     CMP CX,BUFFSIZE
-    JG BSORT
+    JZ BSORT
     JMP RLOOP
     
 ;BUBBLE SORT
@@ -126,25 +134,32 @@ BSORT:
     ;       }
     ;   }
     ;}
+    POP AX
+    MOV [DI],AL     ;ARRAY[BX]
+    INC BX
+    
     MOV N,BX             ;STORE N
     MOV CX,0
 
-;for (j=0;j<n-1;++j)    
+;for (j=0;j<n-1;++j)           
+
 OUTER_LOOP:
     MOV BX,0                ;BX IS THE COUNT VAR OF INNER LOOP 0~N-2-J
     CALL INNER_LOOP1
     INC CX                  ;CX IS THE COUNT VAR OF OUTER LOOP 0~N-1
-    MOV DI,OFFSET N
-    CMP CX,[DI]             ;IF CX==N END
+    CMP CX,N                ;IF CX==N END
     JNE OUTER_LOOP
-    JMP LEAVE
+    JMP PRINTR
             
 INNER_LOOP1:
+    XOR AX,AX
+    XOR DX,DX
     MOV DI,OFFSET ARRAY
-    MOV AX,[DI]             ;a[i]
-    MOV DX,PTR DI+BX+1        ;a[i+1]
-    CMP AX,DX               ;if (a[i]>a[i+1])
-    JG  EXC                 ;exchange a[i] and a[i+1]
+    MOV AL,PTR DI+BX             ;a[i]
+    ;CALL PRINT_NUM
+    MOV DL,PTR DI+BX+1      ;a[i+1]
+    CMP AL,DL               ;if (a[i]>a[i+1])
+    JA  EXC                 ;exchange a[i] and a[i+1]
     JMP INNER_LOOP2
     
 INNER_LOOP2:
@@ -154,7 +169,7 @@ INNER_LOOP2:
     SUB AX,CX               ;N-J
     DEC AX                  ;N-J-1
     CMP BX,AX               ;I<N-1-J?
-    JL  INNER_LOOP1         ;LOOP CONTINUE IF I<N-1-J
+    JB  INNER_LOOP1         ;LOOP CONTINUE IF I<N-1-J
     RET 
 
 ;exchange AX and DX
@@ -162,6 +177,8 @@ EXC:
     MOV TEMP,AX
     MOV AX,DX
     MOV DX,TEMP
+    MOV PTR DI+BX,AL
+    MOV PTR DI+BX+1,DL
     JMP INNER_LOOP2
 
 ;PRINT RESULT
@@ -170,12 +187,19 @@ PRINTR:
     MOV DI,OFFSET ARRAY
     
 PLOOP:
-    MOV AH,02H
-    MOV DL,[DI]
-    INT 21H
+    ;MOV AH,02H
+    ;MOV DL,[DI]
+    ;ADD DL,30H
+    ;INT 21H
+    MOV AL,[DI]
+    CALL PRINT_NUM
+    PUTC 32             ;PRINT " "
     ADD DI,1
     INC CX
     CMP CX,N
-    JNE PLOOP        
+    JNE PLOOP
+            
 LEAVE:  MOV AH,4CH             ;END PROGRAM
         INT 21H
+        DEFINE_PRINT_NUM_UNS
+        DEFINE_PRINT_NUM
