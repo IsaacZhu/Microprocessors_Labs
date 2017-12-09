@@ -5,17 +5,45 @@ INCLUDE EMU8086.INC
 .STACK 1024
 
 .DATA
+    BUFF DB 5,0,5 DUP(0)
 	ARRAY DB 20 DUP(0)
 	RESULT DB 20 DUP(0)
 	N DB 19
     BITNUM DW 1
     TEN DB 10
     
-.CODE
+    
+.CODE 
+INPUT:
+    MOV AX,@data
+    MOV DS,AX
+    XOR AX,AX 
+    MOV DX,OFFSET BUFF
+    MOV AH,10
+    INT 21H         
+    LEA DI,BUFF
+    MOV AL,PTR DI+2
+    MOV BL,PTR DI+3
+    CMP BL,0DH
+    JZ SUB30
+    SUB AL,30H
+    MUL TEN
+    ADD AL,BL
+    SUB AL,30H
+    MOV N,AL
+    JMP FACT
+    
+SUB30:
+    SUB AL,30H
+    MOV N,AL 
+    
 FACT: 
-    LEA DI,N
-    MOV AL,19
-    MOV [DI],AL
+    MOV DL,32
+    MOV AH,02H
+    INT 21H
+    ;LEA DI,N
+    ;MOV AL,19
+    ;MOV [DI],AL
     LEA DI,BITNUM
     MOV AX,1
     MOV [DI],AX
