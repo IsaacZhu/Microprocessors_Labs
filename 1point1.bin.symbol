@@ -1,0 +1,17 @@
+< THE SYMBOL TABLE >  1point1.bin  --  emu8086 assembler version: 4.08 
+===================================================================================================
+Name                     	Offset    	Size      	Type      	Segment   
+===================================================================================================
+DATA                     	00000     	-5        	SEGMENT   	(ITSELF)  
+BUFFER                   	00000     	1         	VAR       	data      
+CODE                     	00011     	-5        	SEGMENT   	(ITSELF)  
+INPUT                    	00000     	-1        	LABEL     	code      
+START                    	0000E     	-1        	LABEL     	code      
+OUTERLOOP                	0002B     	-1        	LABEL     	code      
+INNERLOOP                	00041     	-1        	LABEL     	code      
+ENDOFINNERLOOP           	0004F     	-1        	LABEL     	code      
+LEAVE                    	00050     	-1        	LABEL     	code      
+===================================================================================================
+[ 2017/12/31  --  17:14:51 ] 
+< END >
+ 
